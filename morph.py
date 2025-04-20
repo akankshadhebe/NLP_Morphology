@@ -1,11 +1,10 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="Morphology UI", layout="centered")
+st.set_page_config(page_title="Morphology", layout="centered")
 
 st.markdown("<h2 style='text-align: center; color: #0175C2;'>Morphology</h2>", unsafe_allow_html=True)
 
-# Init session state
 if "submitted" not in st.session_state:
     st.session_state.submitted = False
 if "edited_df" not in st.session_state:
@@ -15,6 +14,21 @@ if "selected_root" not in st.session_state:
 
 root_word = st.selectbox("Select a Root Word", ["पानी", "रानी", "कुत्ता", "बिल्ली", "लड़का", "धोबी", "नारी"], index=2)
 
+# Reset
+if st.session_state.get("selected_root") and root_word != st.session_state.selected_root:
+    st.session_state.submitted = False
+    st.session_state.edited_df = None
+    st.session_state.selected_root = None
+
+# example table
+example_table = pd.DataFrame({
+    "Delete": ["आ", "आ", "आ", "आ"],
+    "Add": ["आ", "ए", "ए", "ओं"],
+    "Number": ["sing", "plu", "sing", "plu"],
+    "Case": ["dr", "dr", "ob", "ob"]
+})
+
+# Answers
 tables = {
     "पानी": pd.DataFrame({
         "Delete": ["ई", "ई", "ई", "ई"],
@@ -57,7 +71,7 @@ tables = {
         "Add": ["ई", "इयाँ", "ई", "इयों"],
         "Number": ["sing", "plu", "sing", "plu"],
         "Case": ["dr", "dr", "ob", "ob"]
-    }),
+    })
 }
 
 morpheme_options = ["आ", "आओं", "आये", "इयाँ", "इयों", "ई", "ए", "ओं"]
@@ -70,8 +84,8 @@ with st.form("morph_form"):
     with col1:
         st.write("**Your Input Table**")
         base_data = {
-            "Delete": ["", "", "", ""],
-            "Add": ["", "", "", ""],
+            "Delete": ["आ", "आ", "आ", "आ"],  # Default value is now "आ"
+            "Add": ["आ", "आ", "आ", "आ"],  # Default value is now "आ"
             "Number": ["sing", "plu", "sing", "plu"],
             "Case": ["dr", "dr", "ob", "ob"]
         }
@@ -90,20 +104,20 @@ with st.form("morph_form"):
         )
 
     with col2:
-        st.write(f"**Example for {root_word}:**")
-        st.dataframe(tables[root_word], use_container_width=True)
+        st.write(f"**For Example for कुत्ता:**")  # Always display "कुत्ता"
+        st.dataframe(example_table, use_container_width=True)
 
     submitted = st.form_submit_button("Submit")
 
-# Save form results to session state
+# Save
 if submitted:
     st.session_state.submitted = True
     st.session_state.edited_df = edited_df
     st.session_state.selected_root = root_word
 
-# Display results only if form has been submitted
+# Display results
 if st.session_state.submitted:
-    correct_table = tables[st.session_state.selected_root]
+    correct_table = tables.get(st.session_state.selected_root, example_table)
     result_df = st.session_state.edited_df.copy()
     all_correct = True
 
